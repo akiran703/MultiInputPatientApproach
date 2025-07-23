@@ -16,3 +16,5 @@ These methodologies include (1) a voting system based on individual image predic
 two largest datasets that are currently available in patient-based split.A cross dataset study
 is presented to show the robustness of the models in a realistic scenario in which data
 comes from different distributions.
+
+Page 29 https://uroc.ucmerced.edu/sites/g/files/ufvvjh1956/f/page/documents/suri_2021_symposium_program.pdf
