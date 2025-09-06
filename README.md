@@ -1,20 +1,131 @@
-Rapid detection of COVID-19 is essential to prevent the disease from spreading. Currently,
-numerous machine learning algorithms have been developed to detect COVID-19 using
-Computerized Tomography (CT) lung scans. However, due to how broad and general they
-are, there is a lack of precision and attention to these patients. In particular, these
-algorithms prioritize accurate detection on an image-by-image basis, instead of on a patientby-patient basis. Treating each scan independently(image-by-image) might result in a
-misdiagnosis if there are multiple CT scans of a single patient and they are not all
-incorporated in the final decision process. Having repeated images in different parts of the
-model will produce an invalid outcome that can’t be trusted for real world scenarios.
-Moreover, these developed algorithms use a single dataset, which raises concerns about
-the generalization of the methods to other data. Various datasets tend to vary in image size
-and quality due to differing CT machine environments. Our approach of tackling both of
-these issues is to create a convolutional neural network (CNN) machine learning algorithm
-that prioritizes producing an accurate diagnosis from multiple scans of a single patient.
-These methodologies include (1) a voting system based on individual image predictions, and
-(2) a CNN that takes multiple images from the same patient. The approach is tested with the
-two largest datasets that are currently available in patient-based split.A cross dataset study
-is presented to show the robustness of the models in a realistic scenario in which data
-comes from different distributions.
+# Multi-Input Patient-Centered COVID-19 Detection
 
-Page 29 https://uroc.ucmerced.edu/sites/g/files/ufvvjh1956/f/page/documents/suri_2021_symposium_program.pdf
+## Overview
+
+Rapid detection of COVID-19 is essential to prevent the disease from spreading. Currently, numerous machine learning algorithms have been developed to detect COVID-19 using Computerized Tomography (CT) lung scans. However, due to how broad and general they are, there is a lack of precision and attention to these patients. 
+
+In particular, these algorithms prioritize accurate detection on an image-by-image basis, instead of on a patient-by-patient basis. Treating each scan independently (image-by-image) might result in a misdiagnosis if there are multiple CT scans of a single patient and they are not all incorporated in the final decision process. Having repeated images in different parts of the model will produce an invalid outcome that can't be trusted for real world scenarios. 
+
+Moreover, these developed algorithms use a single dataset, which raises concerns about the generalization of the methods to other data. Various datasets tend to vary in image size and quality due to differing CT machine environments.
+
+## Approach
+
+Our approach tackles both of these issues by creating convolutional neural network (CNN) machine learning algorithms that prioritize producing an accurate diagnosis from multiple scans of a single patient. These methodologies include:
+
+1. **Voting system based on individual image predictions** - Implemented in `finalpredictionmodel.py`
+2. **Multi-input CNN that processes multiple images from the same patient** - Implemented in `4input_resnet.py`
+
+The approach is tested with the two largest datasets that are currently available in patient-based split. A cross-dataset study is presented to show the robustness of the models in a realistic scenario in which data comes from different distributions.
+
+## Files Description
+
+### `4input_resnet.py`
+This file implements a multi-input ResNet architecture that simultaneously processes 4 CT scan images from the same patient:
+
+- **Architecture**: Four parallel ResNet-50 branches that process different CT slices
+- **Input**: 4 CT scan images (224×224×3) per patient
+- **Data handling**: Automatically adjusts patient data to have exactly 4 images (adds zeros or randomly samples if needed)
+- **Training**: Uses transfer learning with pre-trained weights
+- **Datasets**: Trained on clustered COVID dataset, then fine-tuned on a second dataset for cross-dataset validation
+
+**Key Features:**
+- Patient-centric approach ensuring all images from a patient contribute to diagnosis
+- ResNet-based feature extraction with concatenation layer for fusion
+- Handles variable number of images per patient through intelligent sampling/padding
+- Cross-dataset transfer learning for improved generalization
+
+### `finalpredictionmodel.py`
+This file implements a traditional single-input CNN with patient-level aggregation methods:
+
+- **Architecture**: AlexNet-inspired CNN processing individual CT images
+- **Input**: Single CT scan images (200×200×3)
+- **Aggregation Methods**: 
+  - **Averaging Method**: Averages prediction probabilities across all patient images
+  - **Majority Voting**: Takes majority vote across individual image predictions
+- **Metrics**: Comprehensive evaluation including precision, recall, F1-score, and confusion matrix
+
+**Key Features:**
+- Individual image processing with patient-level decision aggregation
+- Two different patient-level prediction strategies
+- Detailed performance metrics and patient-wise analysis
+- Cross-dataset evaluation for robustness testing
+
+## Methodology
+
+### Data Processing
+Both models implement careful data preprocessing:
+- Image normalization and resizing with aspect ratio preservation
+- Patient-based data splitting (avoiding data leakage)
+- Cross-dataset validation using two independent COVID-19 CT datasets
+
+### Patient-Centered Diagnosis
+Unlike traditional image-by-image approaches, both models ensure that:
+- All available CT scans from a patient contribute to the final diagnosis
+- No single low-quality image can lead to misdiagnosis
+- Patient identity is preserved throughout the evaluation process
+
+### Cross-Dataset Validation
+Both approaches are validated across different datasets to ensure:
+- Robustness to varying image quality and acquisition parameters
+- Generalizability across different hospital/scanner environments
+- Real-world applicability beyond single-dataset performance
+
+## Requirements
+
+```python
+- tensorflow>=2.8.0
+- keras
+- opencv-python
+- numpy
+- pandas
+- scikit-learn
+- matplotlib
+- PIL (Pillow)
+- glob
+```
+
+## Usage
+
+### For Multi-Input ResNet (`4input_resnet.py`)
+1. Prepare your dataset with patient-based CSV files
+2. Ensure CT images are organized by patient ID
+3. Run the script to train the 4-input ResNet model
+4. The model will automatically handle patient data normalization
+
+### For Single-Input with Aggregation (`finalpredictionmodel.py`)
+1. Prepare your dataset with patient-based organization
+2. Run the main() function to train and evaluate the model
+3. Results will show both averaging and majority voting performance
+4. Detailed patient-wise analysis will be provided
+
+## Key Innovations
+
+1. **Patient-Centric Architecture**: Both approaches ensure diagnosis is made at the patient level, not image level
+2. **Multi-Image Integration**: Systematic handling of multiple CT scans per patient
+3. **Cross-Dataset Robustness**: Validation across different data distributions
+4. **Clinical Relevance**: Approaches designed for real-world medical scenarios where patients have multiple scans
+
+## Results
+
+The following table summarizes the performance of different model architectures and aggregation methods on the cross-dataset evaluation:
+
+| Method | Accuracy | F1-Score | Precision | Recall |
+|--------|----------|----------|-----------|--------|
+| Predi-alex-v | 0.91 | 0.91 | 0.92 | 0.91 |
+| m-alex-4 | 0.58 | 0.48 | 0.55 | 0.58 |
+| Predi-alex-avg | 0.92 | 0.92 | 0.92 | 0.92 |
+| m-res-4 | 0.64 | 0.64 | 0.64 | 0.64 |
+
+### Model Descriptions:
+- **Predi-alex-v**: Single-input AlexNet with majority voting aggregation (`finalpredictionmodel.py`)
+- **m-alex-4**: Multi-input AlexNet architecture with 4 simultaneous inputs
+- **Predi-alex-avg**: Single-input AlexNet with averaging aggregation (`finalpredictionmodel.py`)
+- **m-res-4**: Multi-input ResNet with 4 simultaneous inputs (`4input_resnet.py`)
+
+### Key Findings:
+- The single-input models with patient-level aggregation (Predi-alex-v and Predi-alex-avg) significantly outperform the multi-input architectures
+- Both averaging and majority voting aggregation methods achieve excellent performance (>90% across all metrics)
+- The multi-input approaches (m-alex-4 and m-res-4) show lower performance, possibly due to increased model complexity or training challenges
+- Patient-level aggregation proves to be highly effective for cross-dataset generalization
+
+The models provide comprehensive evaluation metrics including detailed confusion matrices and classification reports. This patient-centered approach addresses critical limitations in existing COVID-19 detection systems and provides more reliable diagnostic tools for clinical applications.
