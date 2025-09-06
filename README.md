@@ -84,20 +84,6 @@ Both approaches are validated across different datasets to ensure:
 - glob
 ```
 
-## Usage
-
-### For Multi-Input ResNet (`4input_resnet.py`)
-1. Prepare your dataset with patient-based CSV files
-2. Ensure CT images are organized by patient ID
-3. Run the script to train the 4-input ResNet model
-4. The model will automatically handle patient data normalization
-
-### For Single-Input with Aggregation (`finalpredictionmodel.py`)
-1. Prepare your dataset with patient-based organization
-2. Run the main() function to train and evaluate the model
-3. Results will show both averaging and majority voting performance
-4. Detailed patient-wise analysis will be provided
-
 ## Key Innovations
 
 1. **Patient-Centric Architecture**: Both approaches ensure diagnosis is made at the patient level, not image level
@@ -125,7 +111,7 @@ The following table summarizes the performance of different model architectures 
 ### Key Findings:
 - The single-input models with patient-level aggregation (Predi-alex-v and Predi-alex-avg) significantly outperform the multi-input architectures
 - Both averaging and majority voting aggregation methods achieve excellent performance (>90% across all metrics)
-- The multi-input approaches (m-alex-4 and m-res-4) show lower performance, possibly due to increased model complexity or training challenges
+- The multi-input approaches (m-alex-4 and m-res-4) show lower performance, possibly due to increased model complexity and patient quantity varying
 - Patient-level aggregation proves to be highly effective for cross-dataset generalization
 
 The models provide comprehensive evaluation metrics including detailed confusion matrices and classification reports. This patient-centered approach addresses critical limitations in existing COVID-19 detection systems and provides more reliable diagnostic tools for clinical applications.
