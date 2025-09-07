@@ -111,7 +111,7 @@ The following table summarizes the performance of different model architectures 
 |--------|----------|----------|-----------|--------|
 | Predi-alex-v | 0.91 | 0.91 | 0.92 | 0.91 |
 | m-alex-4 | 0.58 | 0.48 | 0.55 | 0.58 |
-| Predi-alex-avg | 0.92 | 0.92 | 0.92 | 0.92 |
+| Predi-alex-avg | 0.92 | 0.92 | 0.93 | 0.92 |
 
 
 ### Model Descriptions:
