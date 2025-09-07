@@ -1,11 +1,3 @@
-"""4input_alexnet.py
-
-Multi-input AlexNet for COVID-19 detection from CT scans
-
-Original file is located at
-    https://colab.research.google.com/github/akiran703/MultiInputPatientApproach/blob/master/4input_resnet.ipynb
-"""
-
 from PIL import Image
 import glob
 import matplotlib.pyplot as plt
@@ -711,46 +703,3 @@ print(f'Test accuracy: {accuracy:.2}')
 print(f'Validation loss: {loss_val:.2}')
 print(f'Validation accuracy: {accuracy_val:.2}')
 
-# Plot training history
-plt.figure(figsize=(12, 4))
-
-plt.subplot(1, 2, 1)
-plt.plot(history.history['loss'], label='Training Loss')
-plt.plot(history.history['val_loss'], label='Validation Loss')
-plt.title('Model Loss - Initial Training')
-plt.ylabel('Loss')
-plt.xlabel('Epoch')
-plt.legend()
-
-plt.subplot(1, 2, 2)
-plt.plot(history.history['accuracy'], label='Training Accuracy')
-plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-plt.title('Model Accuracy - Initial Training')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend()
-
-plt.tight_layout()
-plt.show()
-
-# Plot transfer learning history
-plt.figure(figsize=(12, 4))
-
-plt.subplot(1, 2, 1)
-plt.plot(history_transfer.history['loss'], label='Transfer Training Loss')
-plt.plot(history_transfer.history['val_loss'], label='Transfer Validation Loss')
-plt.title('Model Loss - Transfer Learning')
-plt.ylabel('Loss')
-plt.xlabel('Epoch')
-plt.legend()
-
-plt.subplot(1, 2, 2)
-plt.plot(history_transfer.history['accuracy'], label='Transfer Training Accuracy')
-plt.plot(history_transfer.history['val_accuracy'], label='Transfer Validation Accuracy')
-plt.title('Model Accuracy - Transfer Learning')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend()
-
-plt.tight_layout()
-plt.show()

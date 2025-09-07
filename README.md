@@ -110,8 +110,9 @@ The following table summarizes the performance of different model architectures 
 | Method | Accuracy | F1-Score | Precision | Recall |
 |--------|----------|----------|-----------|--------|
 | Predi-alex-v | 0.91 | 0.91 | 0.92 | 0.91 |
-| m-alex-4 | 0.58 | 0.48 | 0.55 | 0.58 |
 | Predi-alex-avg | 0.92 | 0.92 | 0.93 | 0.92 |
+| m-alex-4 | 0.58 | 0.48 | 0.55 | 0.58 |
+| m-alex-7 | 0.62 | 0.50 | 0.42 | 0.62 |
 
 
 ### Model Descriptions:
