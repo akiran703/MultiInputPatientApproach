@@ -13,18 +13,18 @@ Moreover, these developed algorithms use a single dataset, which raises concerns
 Our approach tackles both of these issues by creating convolutional neural network (CNN) machine learning algorithms that prioritize producing an accurate diagnosis from multiple scans of a single patient. These methodologies include:
 
 1. **Voting system based on individual image predictions** - Implemented in `finalpredictionmodel.py`
-2. **Multi-input CNN that processes multiple images from the same patient** - Implemented in `4input_alexnet.py`
+2. **Multi-input CNN that processes multiple images from the same patient** - Implemented in `4input_alexnet.py` and `7input_alexnet.py`
 
 The approach is tested with the two largest datasets that are currently available in patient-based split. A cross-dataset study is presented to show the robustness of the models in a realistic scenario in which data comes from different distributions.
 
 ## Files Description
 
-### `4input_alexnet.py`
-This file implements a multi-input AlexNet architecture that simultaneously processes 4 CT scan images from the same patient:
+### `4input_alexnet.py` and `7input_alexnet.py`
+This file implements a multi-input AlexNet architecture that simultaneously processes 4 or 7 CT scan images from the same patient:
 
 - **Architecture**: Four parallel AlexNet branches that process different CT slices
-- **Input**: 4 CT scan images (224×224×3) per patient
-- **Data handling**: Automatically adjusts patient data to have exactly 4 images (adds zeros or randomly samples if needed)
+- **Input**: 4 or 7 CT scan images (224×224×3) per patient
+- **Data handling**: Automatically adjusts patient data to have exactly 4 or 7 images (adds zeros if needed)
 - **Training**: Uses transfer learning with pre-trained weights
 - **Datasets**: Trained on clustered COVID dataset, then fine-tuned on a second dataset for cross-dataset validation
 
@@ -37,7 +37,7 @@ This file implements a multi-input AlexNet architecture that simultaneously proc
 - Includes comprehensive training visualization and metrics
 
 **AlexNet Architecture Details:**
-Each of the 4 input branches follows the classic AlexNet structure:
+Each of the 4 or 7 input branches follows the classic AlexNet structure:
 - **Conv Layer 1**: 96 filters, 11×11 kernel, stride 4, ReLU activation
 - **Conv Layer 2**: 256 filters, 5×5 kernel, ReLU activation
 - **Conv Layer 3**: 384 filters, 3×3 kernel, ReLU activation
@@ -118,6 +118,7 @@ The following table summarizes the performance of different model architectures 
 ### Model Descriptions:
 - **Predi-alex-v**: Single-input AlexNet with majority voting aggregation (`finalpredictionmodel.py`)
 - **m-alex-4**: Multi-input AlexNet architecture with 4 simultaneous inputs (`4input_alexnet.py`)
+- **m-alex-7**: Multi-input AlexNet architecture with 7 simultaneous inputs (`7input_alexnet.py`)
 - **Predi-alex-avg**: Single-input AlexNet with averaging aggregation (`finalpredictionmodel.py`)
 
 

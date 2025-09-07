@@ -10,9 +10,8 @@ from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.callbacks import CSVLogger
 from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten,Concatenate, Dropout
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten,Concatenate, Dropout, BatchNormalization
 from tensorflow.keras.utils import to_categorical
-from keras import backend as K
 import os
 import pandas as pd
 import csv
@@ -20,17 +19,15 @@ import cv2
 import random
 import glob
 from IPython.core.debugger import Tracer
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
-import itertools
-import matplotlib.pyplot as plt
-
-
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from google.colab import auth
 from oauth2client.client import GoogleCredentials
-from google.colab import files
+auth.authenticate_user()
+gauth = GoogleAuth()
+gauth.credentials = GoogleCredentials.get_application_default()
+drive = GoogleDrive(gauth)
+
 
 
 def main():
@@ -331,21 +328,69 @@ def main():
             
             #---------------------------------build neural network--------------------------------
 
-            inputs = Input(shape = (desired_size, desired_size, 3))
-            add1 = (Conv2D(96, (3, 3), activation='relu', padding='valid'))(inputs)
-            max1 = (MaxPooling2D((2, 2)))(add1)
-            add2 = (Conv2D(256, (5, 5), activation='relu', strides=1, padding='same'))(max1)
-            max2 = (MaxPooling2D((3, 3)))(add2)
-            add3 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(max2)
-            add4 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(add3)
-            add5 = (Conv2D(256, (3, 3), activation='relu', strides=1, padding='same'))(add4)
-            max3 = (MaxPooling2D((3, 3)))(add5)
+           # alexnet
+            #model = Sequential()
+            def create_alexnet_branch(input_tensor, branch_name):
+                """
+                Create a single AlexNet branch
+                """
+                # First Convolutional Layer
+                x = Conv2D(96, (11, 11), strides=(4, 4), activation='relu', 
+                        name=f'{branch_name}_conv1', padding='valid')(input_tensor)
+                x = MaxPooling2D((3, 3), strides=(2, 2), name=f'{branch_name}_pool1')(x)
+                x = BatchNormalization(name=f'{branch_name}_bn1')(x)
+                
+                # Second Convolutional Layer
+                x = Conv2D(256, (5, 5), activation='relu', 
+                        name=f'{branch_name}_conv2', padding='same')(x)
+                x = MaxPooling2D((3, 3), strides=(2, 2), name=f'{branch_name}_pool2')(x)
+                x = BatchNormalization(name=f'{branch_name}_bn2')(x)
+                
+                # Third Convolutional Layer
+                x = Conv2D(384, (3, 3), activation='relu', 
+                        name=f'{branch_name}_conv3', padding='same')(x)
+                
+                # Fourth Convolutional Layer
+                x = Conv2D(384, (3, 3), activation='relu', 
+                        name=f'{branch_name}_conv4', padding='same')(x)
+                
+                # Fifth Convolutional Layer
+                x = Conv2D(256, (3, 3), activation='relu', 
+                        name=f'{branch_name}_conv5', padding='same')(x)
+                x = MaxPooling2D((3, 3), strides=(2, 2), name=f'{branch_name}_pool5')(x)
+                
+                return x
 
-            flattenmax = Flatten()(max3)
-            dense1 = (Dense(512, activation='relu'))(flattenmax)
-            dense2 = (Dense(512, activation='relu'))(dense1)
-            output = (Dense(2, activation='softmax'))(dense2)
-            model = Model(inputs = inputs,outputs = output)
+            # Create 1 input branches
+            input1 = Input(shape=(desired_size, desired_size, 3), name='input1')
+           
+
+
+            # Create AlexNet branches
+            branch1 = create_alexnet_branch(input1, 'branch1')
+
+
+            # Concatenate all branches
+            concatenated = Concatenate(axis=-1, name='concatenate')([branch1])
+
+            # Flatten for fully connected layers
+            flattened = Flatten(name='flatten')(concatenated)
+
+            # Fully Connected Layers (similar to original AlexNet)
+            x = Dense(4096, activation='relu', name='fc1')(flattened)
+            x = Dropout(0.5, name='dropout1')(x)
+
+            x = Dense(4096, activation='relu', name='fc2')(x)
+            x = Dropout(0.5, name='dropout2')(x)
+
+            x = Dense(1000, activation='relu', name='fc3')(x)
+            x = Dropout(0.5, name='dropout3')(x)
+
+            # Output layer
+            output = Dense(2, activation='softmax', name='output')(x)
+
+            # Create model
+            model = Model(inputs=[input1], outputs=output, name='AlexNet')
             model.summary()
 
 

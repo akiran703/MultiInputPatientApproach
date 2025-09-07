@@ -459,109 +459,106 @@ pic777 = (list(covidvalfinal.values())[6] + list(noncovidvalfinal.values())[6])
 
 # alexnet
 #model = Sequential()
-inputs = Input(shape = (desired_size, desired_size, 3))
-add1 = (Conv2D(96, (3,3), activation='relu', padding='valid'))(inputs)
-max1 = (MaxPooling2D((2,2)))(add1)
-add2 = (Conv2D(256, (5, 5), activation='relu', strides=1, padding='same'))(max1)
-max2 = (MaxPooling2D((2, 2)))(add2)
-add3 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(max2)
-add4 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(add3)
-add5 = (Conv2D(256, (3, 3), activation='relu', strides=1, padding='same'))(add4)
-max3 = (MaxPooling2D((2, 2)))(add5)
+def create_alexnet_branch(input_tensor, branch_name):
+    """
+    Create a single AlexNet branch
+    """
+    # First Convolutional Layer
+    x = Conv2D(96, (11, 11), strides=(4, 4), activation='relu', 
+               name=f'{branch_name}_conv1', padding='valid')(input_tensor)
+    x = MaxPooling2D((3, 3), strides=(2, 2), name=f'{branch_name}_pool1')(x)
+    x = BatchNormalization(name=f'{branch_name}_bn1')(x)
+    
+    # Second Convolutional Layer
+    x = Conv2D(256, (5, 5), activation='relu', 
+               name=f'{branch_name}_conv2', padding='same')(x)
+    x = MaxPooling2D((3, 3), strides=(2, 2), name=f'{branch_name}_pool2')(x)
+    x = BatchNormalization(name=f'{branch_name}_bn2')(x)
+    
+    # Third Convolutional Layer
+    x = Conv2D(384, (3, 3), activation='relu', 
+               name=f'{branch_name}_conv3', padding='same')(x)
+    
+    # Fourth Convolutional Layer
+    x = Conv2D(384, (3, 3), activation='relu', 
+               name=f'{branch_name}_conv4', padding='same')(x)
+    
+    # Fifth Convolutional Layer
+    x = Conv2D(256, (3, 3), activation='relu', 
+               name=f'{branch_name}_conv5', padding='same')(x)
+    x = MaxPooling2D((3, 3), strides=(2, 2), name=f'{branch_name}_pool5')(x)
+    
+    return x
+
+# Create 7 input branches
+input1 = Input(shape=(desired_size, desired_size, 3), name='input1')
+input2 = Input(shape=(desired_size, desired_size, 3), name='input2')
+input3 = Input(shape=(desired_size, desired_size, 3), name='input3')
+input4 = Input(shape=(desired_size, desired_size, 3), name='input4')
+input5 = Input(shape=(desired_size, desired_size, 3), name='input5')
+input6 = Input(shape=(desired_size, desired_size, 3), name='input6')
+input7 = Input(shape=(desired_size, desired_size, 3), name='input7')
 
 
-inputs1 = Input(shape = (desired_size, desired_size, 3))
-add11 = (Conv2D(96, (3, 3), activation='relu', padding='valid'))(inputs1)
-max11 = (MaxPooling2D((2, 2)))(add11)
-add21 = (Conv2D(256, (5, 5), activation='relu', strides=1, padding='same'))(max11)
-max21 = (MaxPooling2D((2, 2)))(add21)
-add31 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(max21)
-add41 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(add31)
-add51 = (Conv2D(256, (3, 3), activation='relu', strides=1, padding='same'))(add41)
-max31 = (MaxPooling2D((2, 2)))(add51)
+# Create AlexNet branches
+branch1 = create_alexnet_branch(input1, 'branch1')
+branch2 = create_alexnet_branch(input2, 'branch2')
+branch3 = create_alexnet_branch(input3, 'branch3')
+branch4 = create_alexnet_branch(input4, 'branch4')
+branch5 = create_alexnet_branch(input4, 'branch5')
+branch6 = create_alexnet_branch(input4, 'branch6')
+branch7 = create_alexnet_branch(input4, 'branch7')
 
+# Concatenate all branches
+concatenated = Concatenate(axis=-1, name='concatenate')([branch1, branch2, branch3, branch4, branch5, branch6, branch7])
 
+# Flatten for fully connected layers
+flattened = Flatten(name='flatten')(concatenated)
 
-inputs2 = Input(shape = (desired_size, desired_size, 3))
-add12 = (Conv2D(96, (3, 3), activation='relu', padding='valid'))(inputs2)
-max12 = (MaxPooling2D((2, 2)))(add12)
-add22 = (Conv2D(256, (5, 5), activation='relu', strides=1, padding='same'))(max12)
-max22 = (MaxPooling2D((2, 2)))(add22)
-add32 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(max22)
-add42 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(add32)
-add52 = (Conv2D(256, (3, 3), activation='relu', strides=1, padding='same'))(add42)
-max32 = (MaxPooling2D((2, 2)))(add52)
+# Fully Connected Layers (similar to original AlexNet)
+x = Dense(4096, activation='relu', name='fc1')(flattened)
+x = Dropout(0.5, name='dropout1')(x)
 
+x = Dense(4096, activation='relu', name='fc2')(x)
+x = Dropout(0.5, name='dropout2')(x)
 
-inputs3 = Input(shape = (desired_size, desired_size, 3))
-add13 = (Conv2D(96, (3, 3), activation='relu', padding='valid'))(inputs3)
-max13 = (MaxPooling2D((2, 2)))(add13)
-add23 = (Conv2D(256, (5, 5), activation='relu', strides=1, padding='same'))(max13)
-max23 = (MaxPooling2D((2, 2)))(add23)
-add33 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(max23)
-add43 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(add33)
-add53 = (Conv2D(256, (3, 3), activation='relu', strides=1, padding='same'))(add43)
-max33 = (MaxPooling2D((2, 2)))(add53)
+x = Dense(1000, activation='relu', name='fc3')(x)
+x = Dropout(0.5, name='dropout3')(x)
 
+# Output layer
+output = Dense(2, activation='softmax', name='output')(x)
 
-inputs4 = Input(shape = (desired_size, desired_size, 3))
-add14 = (Conv2D(96, (3, 3), activation='relu', padding='valid'))(inputs4)
-max14 = (MaxPooling2D((2, 2)))(add14)
-add24 = (Conv2D(256, (5, 5), activation='relu', strides=1, padding='same'))(max14)
-max24 = (MaxPooling2D((2, 2)))(add24)
-add34 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(max24)
-add44 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(add34)
-add54 = (Conv2D(256, (3, 3), activation='relu', strides=1, padding='same'))(add44)
-max34 = (MaxPooling2D((2, 2)))(add54)
-
-inputs5 = Input(shape = (desired_size, desired_size, 3))
-add15 = (Conv2D(96, (3, 3), activation='relu', padding='valid'))(inputs5)
-max15 = (MaxPooling2D((2, 2)))(add15)
-add25 = (Conv2D(256, (5, 5), activation='relu', strides=1, padding='same'))(max15)
-max25 = (MaxPooling2D((2, 2)))(add25)
-add35 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(max25)
-add45 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(add35)
-add55 = (Conv2D(256, (3, 3), activation='relu', strides=1, padding='same'))(add45)
-max35 = (MaxPooling2D((2, 2)))(add55)
-
-inputs6 = Input(shape = (desired_size, desired_size, 3))
-add16 = (Conv2D(96, (3, 3), activation='relu', padding='valid'))(inputs6)
-max16 = (MaxPooling2D((2, 2)))(add16)
-add26 = (Conv2D(256, (5, 5), activation='relu', strides=1, padding='same'))(max16)
-max26 = (MaxPooling2D((2, 2)))(add26)
-add36 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(max26)
-add46 = (Conv2D(384, (3, 3), activation='relu', strides=1, padding='same'))(add36)
-add56 = (Conv2D(256, (3, 3), activation='relu', strides=1, padding='same'))(add46)
-max36 = (MaxPooling2D((2, 2)))(add56)
-
-
-
-
-concat = Concatenate(axis=-1)([max3,max31,max32,max33,max34,max35,max36])
-addfinal = (Conv2D(128,(3,3),activation ='relu',padding='valid'))(concat)
-finalmax = (MaxPooling2D((2,2)))(addfinal)
-addfinal = (Conv2D(128,(3,3),activation ='relu',padding='valid'))(finalmax)
-finalmax = (MaxPooling2D((2,2)))(addfinal)
-flattenmax = Flatten()(finalmax)
-dense1 = (Dense(256, activation='relu'))(flattenmax)
-dense2 = (Dense(512, activation='relu'))(dense1)
-output = (Dense(2, activation='softmax'))(dense2)
-model = Model(inputs = [inputs,inputs1,inputs2,inputs3,inputs4,inputs5,inputs6],outputs = output)
+# Create model
+model = Model(inputs=[input1, input2, input3, input4, input5, input6, input7], outputs=output, name='AlexNet_7Input')
 model.summary()
 
+#--------------------------------------------------------train the neural network and save the weights--------------------
 #save weights
-checkpoint_filepath = '/content/checkpoint.hdf5'
-model_checkpoint_callback = tf.callbacks.ModelCheckpoint(filepath=checkpoint_filepath,save_weights_only=True,
+checkpoint_filepath = '/content/checkpoint_alexnet.hdf5'
+model_checkpoint_callback = tf.callbacks.ModelCheckpoint(
+    filepath=checkpoint_filepath,
+    save_weights_only=True,
     monitor='val_loss',
     mode='min',
-    save_best_only=True)
+    save_best_only=True
+)
 
-# complie
-optimizer=tf.optimizers.SGD(learning_rate=0.05)
+# compile
+optimizer = tf.optimizers.Adam(learning_rate=0.001)  # Using Adam for AlexNet
 model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
 
-#history = model.fit(x=[pic1,pic2,pic3,pic4], y=endtrainlabel, batch_size=32, epochs=20,verbose=True,validation_data=([pic111,pic222,pic333,pic444],endvalabel))
-history = model.fit(x=[np.array(pic1),np.array(pic2),np.array(pic3),np.array(pic4),np.array(pic5),np.array(pic6),np.array(pic7)], y=endtrainlabel, batch_size=32, epochs=50,callbacks=[model_checkpoint_callback],verbose=True,validation_data=([np.array(pic111),np.array(pic222),np.array(pic333),np.array(pic444),np.array(pic555),np.array(pic666),np.array(pic777)],endvalabel))
+history = model.fit(
+    x=[np.array(pic1), np.array(pic2), np.array(pic3), np.array(pic4),np.array(pic5),np.array(pic6), np.array(pic7)], 
+    y=endtrainlabel, 
+    batch_size=32, 
+    epochs=50,
+    callbacks=[model_checkpoint_callback],
+    verbose=True,
+    validation_data=([np.array(pic111), np.array(pic222), np.array(pic333), np.array(pic444), np.array(pic555),np.array(pic666), np.array(pic777)], endvalabel)
+)
+
+
+#-----------------------------------start of second phase of workflow-----------------------------------------------------
 
 download_transfer = drive.CreateFile({'id':'1NTcd09yqjCh5a3kkWqiCGcclv8Nwo63q'})
 download_transfer.GetContentFile('archive.zip')
