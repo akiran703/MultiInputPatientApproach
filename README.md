@@ -95,7 +95,7 @@ Both approaches are validated across different datasets to ensure:
 - glob
 ```
 
-## Key Innovations
+## Notes
 
 1. **Patient-Centric Architecture**: Both approaches ensure diagnosis is made at the patient level, not image level
 2. **Multi-Image Integration**: Systematic handling of multiple CT scans per patient
