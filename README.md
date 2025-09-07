@@ -13,16 +13,16 @@ Moreover, these developed algorithms use a single dataset, which raises concerns
 Our approach tackles both of these issues by creating convolutional neural network (CNN) machine learning algorithms that prioritize producing an accurate diagnosis from multiple scans of a single patient. These methodologies include:
 
 1. **Voting system based on individual image predictions** - Implemented in `finalpredictionmodel.py`
-2. **Multi-input CNN that processes multiple images from the same patient** - Implemented in `4input_resnet.py`
+2. **Multi-input CNN that processes multiple images from the same patient** - Implemented in `4input_alexnet.py`
 
 The approach is tested with the two largest datasets that are currently available in patient-based split. A cross-dataset study is presented to show the robustness of the models in a realistic scenario in which data comes from different distributions.
 
 ## Files Description
 
-### `4input_resnet.py`
-This file implements a multi-input ResNet architecture that simultaneously processes 4 CT scan images from the same patient:
+### `4input_alexnet.py`
+This file implements a multi-input AlexNet architecture that simultaneously processes 4 CT scan images from the same patient:
 
-- **Architecture**: Four parallel ResNet-50 branches that process different CT slices
+- **Architecture**: Four parallel AlexNet branches that process different CT slices
 - **Input**: 4 CT scan images (224×224×3) per patient
 - **Data handling**: Automatically adjusts patient data to have exactly 4 images (adds zeros or randomly samples if needed)
 - **Training**: Uses transfer learning with pre-trained weights
@@ -30,9 +30,20 @@ This file implements a multi-input ResNet architecture that simultaneously proce
 
 **Key Features:**
 - Patient-centric approach ensuring all images from a patient contribute to diagnosis
-- ResNet-based feature extraction with concatenation layer for fusion
+- AlexNet-based feature extraction with concatenation layer for fusion
 - Handles variable number of images per patient through intelligent sampling/padding
 - Cross-dataset transfer learning for improved generalization
+- Optimized with Adam optimizer and appropriate learning rates
+- Includes comprehensive training visualization and metrics
+
+**AlexNet Architecture Details:**
+Each of the 4 input branches follows the classic AlexNet structure:
+- **Conv Layer 1**: 96 filters, 11×11 kernel, stride 4, ReLU activation
+- **Conv Layer 2**: 256 filters, 5×5 kernel, ReLU activation
+- **Conv Layer 3**: 384 filters, 3×3 kernel, ReLU activation
+- **Conv Layer 4**: 384 filters, 3×3 kernel, ReLU activation
+- **Conv Layer 5**: 256 filters, 3×3 kernel, ReLU activation
+- **Fully Connected**: 4096 → 4096 → 1000 → 2 neurons with dropout regularization
 
 ### `finalpredictionmodel.py`
 This file implements a traditional single-input CNN with patient-level aggregation methods:
@@ -90,6 +101,7 @@ Both approaches are validated across different datasets to ensure:
 2. **Multi-Image Integration**: Systematic handling of multiple CT scans per patient
 3. **Cross-Dataset Robustness**: Validation across different data distributions
 4. **Clinical Relevance**: Approaches designed for real-world medical scenarios where patients have multiple scans
+5. **AlexNet Optimization**: Simplified yet effective architecture suitable for medical imaging applications
 
 ## Results
 
@@ -100,18 +112,37 @@ The following table summarizes the performance of different model architectures 
 | Predi-alex-v | 0.91 | 0.91 | 0.92 | 0.91 |
 | m-alex-4 | 0.58 | 0.48 | 0.55 | 0.58 |
 | Predi-alex-avg | 0.92 | 0.92 | 0.92 | 0.92 |
-| m-res-4 | 0.64 | 0.64 | 0.64 | 0.64 |
+
 
 ### Model Descriptions:
 - **Predi-alex-v**: Single-input AlexNet with majority voting aggregation (`finalpredictionmodel.py`)
-- **m-alex-4**: Multi-input AlexNet architecture with 4 simultaneous inputs
+- **m-alex-4**: Multi-input AlexNet architecture with 4 simultaneous inputs (previous version)
 - **Predi-alex-avg**: Single-input AlexNet with averaging aggregation (`finalpredictionmodel.py`)
-- **m-res-4**: Multi-input ResNet with 4 simultaneous inputs (`4input_resnet.py`)
+
 
 ### Key Findings:
 - The single-input models with patient-level aggregation (Predi-alex-v and Predi-alex-avg) significantly outperform the multi-input architectures
 - Both averaging and majority voting aggregation methods achieve excellent performance (>90% across all metrics)
-- The multi-input approaches (m-alex-4 and m-res-4) show lower performance, possibly due to increased model complexity and patient quantity varying
+- The multi-input AlexNet architecture shows room for improvement with:
+  - **Better Optimization**: Adam optimizer instead of SGD for improved convergence
+  - **Proper Regularization**: Dropout layers to prevent overfitting
+  - **Enhanced Architecture**: Properly structured AlexNet branches with batch normalization
+  - **Transfer Learning**: Lower learning rates and appropriate fine-tuning strategy
 - Patient-level aggregation proves to be highly effective for cross-dataset generalization
 
-The models provide comprehensive evaluation metrics including detailed confusion matrices and classification reports. This patient-centered approach addresses critical limitations in existing COVID-19 detection systems and provides more reliable diagnostic tools for clinical applications.
+## Architecture Comparison
+
+### Multi-Input AlexNet vs Single-Input with Aggregation
+
+**Multi-Input AlexNet Advantages:**
+- Simultaneous processing of multiple images allows for cross-image feature learning
+- End-to-end optimization of the entire patient diagnosis pipeline
+- Potential for learning complex inter-slice relationships
+- Single model handles entire patient case
+
+**Single-Input with Aggregation Advantages:**
+- Simpler architecture with proven stability
+- Better handling of variable number of images per patient
+- Easier to interpret and debug
+- More robust to dataset variations
+
