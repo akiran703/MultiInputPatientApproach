@@ -116,7 +116,7 @@ The following table summarizes the performance of different model architectures 
 
 ### Model Descriptions:
 - **Predi-alex-v**: Single-input AlexNet with majority voting aggregation (`finalpredictionmodel.py`)
-- **m-alex-4**: Multi-input AlexNet architecture with 4 simultaneous inputs (previous version)
+- **m-alex-4**: Multi-input AlexNet architecture with 4 simultaneous inputs (`4input_alexnet.py`)
 - **Predi-alex-avg**: Single-input AlexNet with averaging aggregation (`finalpredictionmodel.py`)
 
 
