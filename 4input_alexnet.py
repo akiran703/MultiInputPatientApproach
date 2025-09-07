@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """4input_alexnet.py
 
 Multi-input AlexNet for COVID-19 detection from CT scans
