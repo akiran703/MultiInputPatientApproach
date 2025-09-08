@@ -51,8 +51,8 @@ This file implements a traditional single-input CNN with patient-level aggregati
 - **Architecture**: AlexNet-inspired CNN processing individual CT images
 - **Input**: Single CT scan images (200×200×3)
 - **Aggregation Methods**: 
-  - **Averaging Method**: Averages prediction probabilities across all patient images (Implemented post UROC SOAR program)
-  - **Majority Voting**: Takes majority vote across individual image predictions
+  - **Averaging Method**: Averages prediction probabilities across all patient images per patient (Implemented post UROC SOAR program)
+  - **Majority Voting**: Takes majority vote across all patient images per patient
 - **Metrics**: Comprehensive evaluation including precision, recall, F1-score, and confusion matrix
 
 **Key Features:**
