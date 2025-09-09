@@ -12,12 +12,21 @@ from tensorflow.keras.layers import Dense, Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten,Concatenate, Dropout, BatchNormalization
 from tensorflow.keras.utils import to_categorical
+from keras import backend as K
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
+import itertools
+import matplotlib.pyplot as plt
+
+
 import os
 import pandas as pd
 import csv
 import cv2
 import random
 import glob
+
+
 from IPython.core.debugger import Tracer
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
@@ -725,15 +734,192 @@ def main():
             # Convert to numpy arrays
             finalpred_majority = np.array(finalpred_majority)
             actuallabel_majority = np.array(actuallabel_majority)
+            
+            
+            
+             #-------------------------------------Entropy-Based Weighting -----------------------------------
+             
+            #Calculates the Shannon entropy for a probability distribution
+            def calculate_entropy(p, epsilon=1e-12):
+                p = np.clip(p, epsilon, 1. - epsilon)
+                return -np.sum(p * np.log2(p))
+
+            print("ENTROPY-BASED WEIGHTING EVALUATION")
+
+            finalpred_entropy = []
+            actuallabel_entropy = []
+
+            for key, value in dictOfElems.items():
+                weighted_sum = 0.0
+                total_weight = 0.0
+                
+                print(f"\nPatient ID: {key}")
+                print("Individual slice predictions and weights:")
+
+                # Loop through each slice for the patient
+                for i in range(dictOfElems[key][0]):
+                    # Get the prediction for the current slice
+                    slice_pred_vector = prediction[dictOfElems[key][1][i]]
+                    prob_covid = slice_pred_vector[1]
+
+                    # Calculate entropy and weight
+                    # Low entropy (high confidence) gets a high weight (close to 1)
+                    # High entropy (low confidence) gets a low weight (close to 0)
+                    entropy = calculate_entropy(slice_pred_vector)
+                    weight = 1.0 - entropy
+
+                    print(f"  Slice {i+1}: COVID prob = {prob_covid:.4f}, Entropy = {entropy:.4f}, Weight = {weight:.4f}")
+
+                    # Accumulate weighted sum of COVID probabilities and total weight
+                    weighted_sum += prob_covid * weight
+                    total_weight += weight
+
+                # Calculate final weighted average diagnosis
+                # Handle edge case where total_weight is zero (all predictions were max entropy)
+                if total_weight > 0:
+                    final_score = weighted_sum / total_weight
+                else:
+                    final_score = 0.5  # Default to an uncertain score
+
+                # Make final decision based on the weighted score
+                final_diagnosis = 1 if final_score > 0.5 else 0
+                finalpred_entropy.append(tf.cast(final_diagnosis, tf.float32))
+
+                # Get the actual label (it's the same for all slices of this patient)
+                actualvalue = finaltestlabel[dictOfElems[key][1][0]]
+                actuallabel_entropy.append(tf.cast(actualvalue[1], tf.float32))
+
+                print(f"\nFinal Weighted Score: {final_score:.4f}")
+                print(f"  → ENTROPY-WEIGHTED DIAGNOSIS: {'COVID' if final_diagnosis == 1 else 'Non-COVID'}")
+                print(f"  Actual label: {'COVID' if actualvalue[1] == 1 else 'Non-COVID'}")
+                print(f"  Correct: {'✓' if final_diagnosis == actualvalue[1] else '✗'}")
+
+            # Convert lists to numpy arrays for metric calculation
+            finalpred_entropy = np.array(finalpred_entropy)
+            actuallabel_entropy = np.array(actuallabel_entropy)
+            
+       
+
+            #-------------------------------------Z-score normalization approach-----------------------------------------
+            print("Z-SCORE NORMALIZATION EVALUATION")
+
+            finalpred_zscore = []
+            actuallabel_zscore = []
+
+            for key, value in dictOfElems.items():
+                # Step 1: Collect all COVID probabilities for the current patient's slices
+                patient_slice_probs = np.array([prediction[i][1] for i in value[1]])
+                
+                # Step 2: Calculate the mean and standard deviation of probabilities for this patient
+                mean_prob = np.mean(patient_slice_probs)
+                std_dev = np.std(patient_slice_probs)
+                
+                print(f"\nPatient ID: {key}")
+                print(f"  Slice Probs: {[f'{p:.2f}' for p in patient_slice_probs]}")
+                print(f"  Mean={mean_prob:.4f}, Std Dev={std_dev:.4f}")
+
+                # Step 3: Calculate Z-scores for each slice probability
+                # Handle the edge case where standard deviation is zero to avoid division by zero
+                if std_dev > 1e-6:  # Use a small epsilon for floating-point stability
+                    z_scores = (patient_slice_probs - mean_prob) / std_dev
+                else:
+                    # If all predictions are identical, their deviation from the mean is zero
+                    z_scores = np.zeros_like(patient_slice_probs)
+                
+                print(f"  Z-Scores: {[f'{z:.2f}' for z in z_scores]}")
+
+                # Step 4: Average the Z-scores to get the final patient-level score
+                avg_z_score = np.mean(z_scores)
+
+                # Step 5: Make a final decision. A positive average Z-score suggests the
+                # distribution of predictions is skewed towards values higher than the patient's own average.
+                final_diagnosis = 1 if avg_z_score > 0 else 0
+                
+                finalpred_zscore.append(tf.cast(final_diagnosis, tf.float32))
+
+                # Get the actual label for the patient
+                actualvalue = finaltestlabel[value[1][0]]
+                actuallabel_zscore.append(tf.cast(actualvalue[1], tf.float32))
+
+                print(f"\nFinal Average Z-Score: {avg_z_score:.4f}")
+                print(f"  → Z-SCORE DIAGNOSIS: {'COVID' if final_diagnosis == 1 else 'Non-COVID'}")
+                print(f"  Actual label: {'COVID' if actualvalue[1] == 1 else 'Non-COVID'}")
+                print(f"  Correct: {'✓' if final_diagnosis == final_diagnosis == actualvalue[1] else '✗'}")
+
+            # Convert lists to numpy arrays for metric calculation
+            finalpred_zscore = np.array(finalpred_zscore)
+            actuallabel_zscore = np.array(actuallabel_zscore)
+            
+            
+            
+            #-----------------------------Bayesian Model Averaging approach---------------
+            
+            print("\nBAYESIAN MODEL AVERAGING (BMA) EVALUATION")
+
+            finalpred_bma = []
+            actuallabel_bma = []
+
+            for key, value in dictOfElems.items():
+                weighted_sum_probs = 0.0
+                total_weight = 0.0
+                
+                slice_details_for_logging = []
+
+                # Loop through each slice for the patient to calculate its contribution
+                for i in value[1]:
+                    prob_covid = prediction[i][1]
+                    
+                    # The weight is a proxy for the posterior probability of this slice's "model".
+                    # We define it by the model's confidence: how far the prediction is from 0.5.
+                    # We scale by 2 to map the weight to a more intuitive [0, 1] range.
+                    weight = 2 * abs(prob_covid - 0.5)
+                    
+                    # Accumulate the weighted sum of probabilities and the sum of weights
+                    weighted_sum_probs += weight * prob_covid
+                    total_weight += weight
+                    slice_details_for_logging.append((prob_covid, weight))
+
+                # Calculate the final BMA score
+                # Handle the edge case where all predictions are exactly 0.5 (total_weight is zero)
+                if total_weight > 1e-6:
+                    bma_score = weighted_sum_probs / total_weight
+                else:
+                    bma_score = 0.5 # The result is maximally uncertain
+
+                # Make final decision based on the BMA score
+                final_diagnosis = 1 if bma_score > 0.5 else 0
+                
+                finalpred_bma.append(tf.cast(final_diagnosis, tf.float32))
+
+                # Get the actual label for the patient
+                actualvalue = finaltestlabel[value[1][0]]
+                actuallabel_bma.append(tf.cast(actualvalue[1], tf.float32))
+
+                # Print details for this patient for clarity
+                print(f"\nPatient ID: {key}")
+                for prob, w in slice_details_for_logging:
+                    print(f"  Slice Prob: {prob:.4f}, Weight (Confidence): {w:.4f}")
+                print(f"\nFinal BMA Score: {bma_score:.4f}")
+                print(f"  → BMA DIAGNOSIS: {'COVID' if final_diagnosis == 1 else 'Non-COVID'}")
+                print(f"  Actual label: {'COVID' if actualvalue[1] == 1 else 'Non-COVID'}")
+                print(f"  Correct: {'✓' if final_diagnosis == actualvalue[1] else '✗'}")
 
 
+            # Convert lists to numpy arrays for metric calculation
+            finalpred_bma = np.array(finalpred_bma)
+            actuallabel_bma = np.array(actuallabel_bma)
+            
+            
+            
+            
+            
 
 
             #---------------------------------------------Display data----------------------------------------------------------------
 
 
 
-            # output both methods
+            # output metrics
 
             print("Averaging methond RESULTS")
 
@@ -763,6 +949,47 @@ def main():
 
             tn, fp, fn, tp = confusion_matrix(y_true=actuallabel_majority, y_pred=finalpred_majority).ravel()
             (tn, fp, fn, tp)
+            
+            
+           
+            print("ENTROPY-BASED WEIGHTING RESULTS")
+            
+            
+            print(f" Recall:    {recall_m(actuallabel_entropy, finalpred_entropy):.2f}")
+            print(f" Precision: {precision_m(actuallabel_entropy, finalpred_entropy):.2f}")
+            print(f" F1-Score:  {f1_m(actuallabel_entropy, finalpred_entropy):.2f}")
+            
+            
+            
+            print(classification_report(y_true=actuallabel_entropy, y_pred=finalpred_entropy))
+            
+            tn, fp, fn, tp = confusion_matrix(y_true=actuallabel_entropy, y_pred=finalpred_entropy).ravel()
+            (tn, fp, fn, tp)
+            
+            
+            
+            
+            print("Z-SCORE NORMALIZATION RESULT")
+            
+            print(f"Recall:    {recall_m(actuallabel_zscore, finalpred_zscore):.2f}")
+            print(f"Precision: {precision_m(actuallabel_zscore, finalpred_zscore):.2f}")
+            print(f"F1-Score:  {f1_m(actuallabel_zscore, finalpred_zscore):.2f}\n")
+            
+            print(classification_report(y_true=actuallabel_zscore, y_pred=finalpred_zscore))
+            tn, fp, fn, tp = confusion_matrix(y_true=actuallabel_zscore, y_pred=finalpred_zscore).ravel()
+            (tn, fp, fn, tp)
+            
+            
+            
+            print("BAYESIAN MODEL AVERAGING RESULT")
+            print(f"Recall:    {recall_m(actuallabel_bma, finalpred_bma):.2f}")
+            print(f"Precision: {precision_m(actuallabel_bma, finalpred_bma):.2f}")
+            print(f"F1-Score:  {f1_m(actuallabel_bma, finalpred_bma):.2f}\n")
+            
+            print(classification_report(y_true=actuallabel_bma, y_pred=finalpred_bma))
+            tn, fp, fn, tp = confusion_matrix(y_true=actuallabel_bma, y_pred=finalpred_bma).ravel()
+            (tn, fp, fn, tp)
+
 
 
 if __name__ == '__main__':
