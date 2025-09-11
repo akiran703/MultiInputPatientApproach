@@ -19,25 +19,7 @@ The approach is tested with the two largest datasets that are currently availabl
 
 ## Files Description
 
-### `4input_alexnet.py` and `7input_alexnet.py`
-This file implements a multi-input AlexNet architecture that simultaneously processes 4 or 7 CT scan images from the same patient:
-
-- **Architecture**: Four parallel AlexNet branches that process different CT slices
-- **Input**: 4 or 7 CT scan images (224×224×3) per patient
-- **Data handling**: Automatically adjusts patient data to have exactly 4 or 7 images (adds zeros if needed)
-- **Training**: Uses transfer learning with pre-trained weights
-- **Datasets**: Trained on clustered COVID dataset, then fine-tuned on a second dataset for cross-dataset validation
-
-**Key Features:**
-- Patient-centric approach ensuring all images from a patient contribute to diagnosis
-- AlexNet-based feature extraction with concatenation layer for fusion
-- Handles variable number of images per patient through intelligent sampling/padding
-- Cross-dataset transfer learning for improved generalization
-- Optimized with Adam optimizer and appropriate learning rates
-- Includes comprehensive training visualization and metrics
-
-**AlexNet Architecture Details:**
-Each of the 4 or 7 input branches follows the classic AlexNet structure:
+**AlexNet Architecture Details used in all files:**  
 - **Conv Layer 1**: 96 filters, 11×11 kernel, stride 4, ReLU activation
 - **Conv Layer 2**: 256 filters, 5×5 kernel, ReLU activation
 - **Conv Layer 3**: 384 filters, 3×3 kernel, ReLU activation
@@ -45,19 +27,39 @@ Each of the 4 or 7 input branches follows the classic AlexNet structure:
 - **Conv Layer 5**: 256 filters, 3×3 kernel, ReLU activation
 - **Fully Connected**: 4096 → 4096 → 1000 → 2 neurons with dropout regularization
 
+### `4input_alexnet.py` and `7input_alexnet.py`
+This file implements a multi-input AlexNet architecture that simultaneously processes 4 or 7 CT scan images from the same patient:
+
+- **Architecture**: Four parallel AlexNet branches that process different CT slices
+- **Input**: 1, 4, or 7 CT scan images (224×224×3) per patient
+- **Data handling**: Automatically adjusts patient data to have exactly 4 or 7 images (adds zeros if needed)
+- **Training**: Uses transfer learning with pre-trained weights
+- **Datasets**: Trained on clustered COVID dataset, then fine-tuned on a second dataset for cross-dataset validation
+
+**Key Features:**
+- Patient-centric approach ensuring all images from a patient contribute to diagnosis
+- Cross-dataset transfer learning for improved generalization
+- Optimized with Adam optimizer and appropriate learning rates
+- Includes comprehensive training visualization and metrics
+
+
 ### `finalpredictionmodel.py`
 This file implements a traditional single-input CNN with patient-level aggregation methods:
 
 - **Architecture**: AlexNet-inspired CNN processing individual CT images
-- **Input**: Single CT scan images (200×200×3)
+- **Input**: Single CT scan images (224×224×3)
 - **Aggregation Methods**: 
   - **Averaging Method**: Averages prediction probabilities across all patient images
   - **Majority Voting**: Takes majority vote across individual image predictions
-- **Metrics**: Comprehensive evaluation including precision, recall, F1-score, and confusion matrix
+  - **Entropy-based Weighting**: Intelligently weighs each scans prediction based on the model's confidence (Method tried post UROC SOAR)
+  - **Z-score Normalization**: calculates the mean and standard deviation of the COVID-19 probabilities across all of a single patient's CT scans,                                  then transforms each scans probability into a Z-score.(Method tried post UROC SOAR)
+  - **Majority Voting**: Give each scans prediction a weight based on the model's confidence. A prediction with high confidence (i.e., a probability                           close to 0 or 1) is given more weight (Method tried post UROC SOAR)
+- **Metrics**: Comprehensive evaluation including accuracy, precision, recall, F1-score, and confusion matrix
 
 **Key Features:**
 - Individual image processing with patient-level decision aggregation
-- Two different patient-level prediction strategies
+- 5 different patient-level prediction strategies
+- Optimized with SGD optimizer and appropriate learning rates
 - Detailed performance metrics and patient-wise analysis
 - Cross-dataset evaluation for robustness testing
 
@@ -73,6 +75,7 @@ Both models implement careful data preprocessing:
 Unlike traditional image-by-image approaches, both models ensure that:
 - All available CT scans from a patient contribute to the final diagnosis
 - No single low-quality image can lead to misdiagnosis
+- Conflicting signs of COVID-19 can be ruled out properly 
 - Patient identity is preserved throughout the evaluation process
 
 ### Cross-Dataset Validation
@@ -97,7 +100,7 @@ Both approaches are validated across different datasets to ensure:
 
 ## Notes
 
-1. **Patient-Centric Architecture**: Both approaches ensure diagnosis is made at the patient level, not image level
+1. **Patient-Centric Architecture**: Approaches ensure diagnosis is made at the patient level, not image level
 2. **Multi-Image Integration**: Systematic handling of multiple CT scans per patient
 3. **Cross-Dataset Robustness**: Validation across different data distributions
 4. **Clinical Relevance**: Approaches designed for real-world medical scenarios where patients have multiple scans
@@ -109,27 +112,21 @@ The following table summarizes the performance of different model architectures 
 
 | Method | Accuracy | F1-Score | Precision | Recall |
 |--------|----------|----------|-----------|--------|
-| Predi-alex-v | 0.91 | 0.91 | 0.92 | 0.91 |
-| Predi-alex-avg | 0.92 | 0.92 | 0.93 | 0.92 |
 | m-alex-4 | 0.58 | 0.48 | 0.55 | 0.58 |
 | m-alex-7 | 0.62 | 0.50 | 0.42 | 0.62 |
+| Predi-alex-vote | 0.91 | 0.91 | 0.92 | 0.91 |
+| Predi-alex-avg | 0.92 | 0.92 | 0.93 | 0.92 |
+| Predi-alex-Entro | 0.94 | 0.93 | 0.94 | 0.92 |
+| Predi-alex-Z-Score | 0.89 | 0.89 | 0.90 | 0.88 |
+| Predi-alex-Bayesian | 0.93 | 0.93 | 0.93 | 0.93 |
 
-
-### Model Descriptions:
-- **Predi-alex-v**: Single-input AlexNet with majority voting aggregation (`finalpredictionmodel.py`)
-- **m-alex-4**: Multi-input AlexNet architecture with 4 simultaneous inputs (`4input_alexnet.py`)
-- **m-alex-7**: Multi-input AlexNet architecture with 7 simultaneous inputs (`7input_alexnet.py`)
-- **Predi-alex-avg**: Single-input AlexNet with averaging aggregation (`finalpredictionmodel.py`)
 
 
 ### Key Findings:
-- The single-input models with patient-level aggregation (Predi-alex-v and Predi-alex-avg) significantly outperform the multi-input architectures
-- Both averaging and majority voting aggregation methods achieve excellent performance (>90% across all metrics)
-- The multi-input AlexNet architecture shows room for improvement with:
-  - **Better Optimization**: Adam optimizer instead of SGD for improved convergence
-  - **Proper Regularization**: Dropout layers to prevent overfitting
-  - **Enhanced Architecture**: Properly structured AlexNet branches with batch normalization
-  - **Transfer Learning**: Lower learning rates and appropriate fine-tuning strategy
+- The single-input models with patient-level aggregation significantly outperform the multi-input architectures
+- All aggregation methods achieve excellent performance (>90% across all metrics)
+- Single-input model with patient ID aggregation (AVG) outperformed the standard image-by-image baseline mode by 2% in sensitivity 
+- The single-input models do not return false negatives but returns false positives
 - Patient-level aggregation proves to be highly effective for cross-dataset generalization
 
 ## Architecture Comparison
