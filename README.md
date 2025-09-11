@@ -41,9 +41,9 @@ All models use a simplified AlexNet architecture optimized for medical imaging:
 **Patient-Level Aggregation Methods**:
 - **Averaging**: Averages prediction probabilities across all patient images
 - **Majority Voting**: Takes majority vote across individual image predictions  
-- **Entropy-based Weighting**: Weights predictions based on model confidence
-- **Z-score Normalization**: Transforms probabilities into Z-scores using patient-specific statistics
-- **Bayesian Weighting**: Assigns weights based on prediction confidence levels
+- **Entropy-based Weighting**: Weighs each scans prediction based on the model's confidence [weight is logarithmic] (method explored post UROC SOAR)
+- **Z-score Normalization**: Transforms mean and standard deviation of COVID-19 probabilities into Z-scores, then avergaing the Z-scores (method explored post UROC SOAR)
+- **Bayesian Weighting**: Weighting each scans prediction based on the model's confidence [weight is linear] (method explored post UROC SOAR)
 
 **Key Features**:
 - Individual image processing with intelligent patient-level aggregation
