@@ -117,32 +117,6 @@ Performance comparison on cross-dataset evaluation:
 | **Complexity** | High | Low-Medium |
 
 
-## Requirements
-
-```python
-tensorflow>=2.8.0
-keras
-opencv-python
-numpy
-pandas  
-scikit-learn
-matplotlib
-Pillow
-glob
-```
-
-## Installation & Usage
-
-
-1. **Run single-input model with aggregation**:
-   ```bash
-   python finalpredictionmodel.py
-   ```
-
-2. **Run multi-input models**:
-   ```bash
-   python 4input_alexnet.py  # or 7input_alexnet.py
-   ```
 
 ## Clinical Impact
 
