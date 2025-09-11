@@ -109,7 +109,7 @@ def main():
             noncovidtrainid = []
             noncovidvalid = []
 
-            desired_size=200            
+            desired_size=224            
             
             #---------------------------------------normalize covid images------------------------
             def myFunc(name):
