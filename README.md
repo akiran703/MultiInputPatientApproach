@@ -12,7 +12,7 @@ Moreover, these developed algorithms use a single dataset, which raises concerns
 
 Our approach tackles both of these issues by creating convolutional neural network (CNN) machine learning algorithms that prioritize producing an accurate diagnosis from multiple scans of a single patient. These methodologies include:
 
-1. **Voting system based on individual image predictions** - Implemented in `finalpredictionmodel.py`
+1. **CNN to predict whether COVID-19 was present in individual scans, then grouping these predictions by patient ID** - Implemented in `finalpredictionmodel.py`
 2. **Multi-input CNN that processes multiple images from the same patient** - Implemented in `4input_alexnet.py` and `7input_alexnet.py`
 
 The approach is tested with the two largest datasets that are currently available in patient-based split. A cross-dataset study is presented to show the robustness of the models in a realistic scenario in which data comes from different distributions.
@@ -30,8 +30,8 @@ The approach is tested with the two largest datasets that are currently availabl
 ### `4input_alexnet.py` and `7input_alexnet.py`
 This file implements a multi-input AlexNet architecture that simultaneously processes 4 or 7 CT scan images from the same patient:
 
-- **Architecture**: Four parallel AlexNet branches that process different CT slices
-- **Input**: 1, 4, or 7 CT scan images (224×224×3) per patient
+- **Architecture**: X parallel AlexNet branches that process different CT slices
+- **Input**: 4 or 7 CT scan images (224×224×3) per patient
 - **Data handling**: Automatically adjusts patient data to have exactly 4 or 7 images (adds zeros if needed)
 - **Training**: Uses transfer learning with pre-trained weights
 - **Datasets**: Trained on clustered COVID dataset, then fine-tuned on a second dataset for cross-dataset validation
@@ -44,7 +44,7 @@ This file implements a multi-input AlexNet architecture that simultaneously proc
 
 
 ### `finalpredictionmodel.py`
-This file implements a traditional single-input CNN with patient-level aggregation methods:
+This file implements the same AlexNet model from the ulti-input AlexNet architecture with patient-level aggregation methods:
 
 - **Architecture**: AlexNet-inspired CNN processing individual CT images
 - **Input**: Single CT scan images (224×224×3)
