@@ -576,7 +576,7 @@ for i in range(inputparameter):
 def transfernormalize(name):
     temptwo = []
     for i in range(len(name)):
-        img = cv2.imread(name[i])
+        img = cv2.imref(name[i])
         # print(pId + " iam here" + f1)
         # imgreszie = cv2.resize(img, (480, 480))
         old_size = img.shape[:2]
