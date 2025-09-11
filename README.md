@@ -103,8 +103,8 @@ Performance comparison on cross-dataset evaluation:
 ### Key Findings
 
 - **Single-input models with patient-level aggregation significantly outperform multi-input architectures**
-- All aggregation methods achieve excellent performance (>90% across all metrics)
-- Patient-level aggregation improved sensitivity by 2% compared to standard image-by-image baselines
+- All aggregation methods achieve excellent performance
+- Patient-level aggregation improved sensitivity by 2% (AVG and Entropy) and 3% (Bayesian) compared to standard image-by-image baselines
 - Models minimize false negatives while maintaining high precision
 - Cross-dataset generalization demonstrates real-world applicability
 
