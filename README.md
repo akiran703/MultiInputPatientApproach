@@ -115,7 +115,7 @@ Performance comparison on cross-dataset evaluation:
 | **Advantages** | •Simultaneous cross-image learning •End-to-end optimization •Complex inter-slice relationships •Single model per patient | •Simpler, more stable architecture •Handles variable image counts •Easier interpretation and debugging •Superior cross-dataset robustness |
 | **Performance** | Moderate (58-62% accuracy) | Excellent (89-94% accuracy) |
 | **Complexity** | High | Low-Medium |
-| **Recommended Use** | Research scenarios | Clinical deployment |
+
 
 ## Requirements
 
