@@ -107,6 +107,7 @@ Performance comparison on cross-dataset evaluation:
 - Patient-level aggregation improved sensitivity by 2% (AVG and Entropy) and 3% (Bayesian) compared to standard image-by-image baselines
 - Models minimize false negatives while maintaining high precision
 - Cross-dataset generalization demonstrates real-world applicability
+- Presentation can be found under old_notebooks, Proof of presenting in symposium in old_notebooks
 
 ## Architecture Comparison
 
