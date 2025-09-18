@@ -41,9 +41,9 @@ All models use a simplified AlexNet architecture optimized for medical imaging:
 **Patient-Level Aggregation Methods**:
 - **Averaging**: Averages prediction probabilities across all patient images
 - **Majority Voting**: Takes majority vote across individual image predictions  
-- **Entropy-based Weighting**: Weights predictions based on model confidence
-- **Z-score Normalization**: Transforms probabilities into Z-scores using patient-specific statistics
-- **Bayesian Weighting**: Assigns weights based on prediction confidence levels
+- **Entropy-based Weighting**: Weighs each scans prediction based on the model's confidence [weight is logarithmic] (method explored post UROC SOAR)
+- **Z-score Normalization**: Transforms mean and standard deviation of COVID-19 probabilities into Z-scores, then avergaing the Z-scores (method explored post UROC SOAR)
+- **Bayesian Weighting**: Weighting each scans prediction based on the model's confidence [weight is linear] (method explored post UROC SOAR)
 
 **Key Features**:
 - Individual image processing with intelligent patient-level aggregation
@@ -103,8 +103,8 @@ Performance comparison on cross-dataset evaluation:
 ### Key Findings
 
 - **Single-input models with patient-level aggregation significantly outperform multi-input architectures**
-- All aggregation methods achieve excellent performance (>90% across all metrics)
-- Patient-level aggregation improved sensitivity by 2% compared to standard image-by-image baselines
+- All aggregation methods achieve excellent performance
+- Patient-level aggregation improved sensitivity by 2% (AVG and Entropy) and 3% (Bayesian) compared to standard image-by-image baselines
 - Models minimize false negatives while maintaining high precision
 - Cross-dataset generalization demonstrates real-world applicability
 
@@ -115,34 +115,8 @@ Performance comparison on cross-dataset evaluation:
 | **Advantages** | •Simultaneous cross-image learning •End-to-end optimization •Complex inter-slice relationships •Single model per patient | •Simpler, more stable architecture •Handles variable image counts •Easier interpretation and debugging •Superior cross-dataset robustness |
 | **Performance** | Moderate (58-62% accuracy) | Excellent (89-94% accuracy) |
 | **Complexity** | High | Low-Medium |
-| **Recommended Use** | Research scenarios | Clinical deployment |
-
-## Requirements
-
-```python
-tensorflow>=2.8.0
-keras
-opencv-python
-numpy
-pandas  
-scikit-learn
-matplotlib
-Pillow
-glob
-```
-
-## Installation & Usage
 
 
-1. **Run single-input model with aggregation**:
-   ```bash
-   python finalpredictionmodel.py
-   ```
-
-2. **Run multi-input models**:
-   ```bash
-   python 4input_alexnet.py  # or 7input_alexnet.py
-   ```
 
 ## Clinical Impact
 
