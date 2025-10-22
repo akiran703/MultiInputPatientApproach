@@ -92,6 +92,7 @@ Performance comparison on cross-dataset evaluation:
 
 | Method | Accuracy | F1-Score | Precision | Recall |
 |--------|----------|----------|-----------|--------|
+| Baseline AlexNet Single Input | 0.90 | 0.81 | 0.82 | 0.80  |
 | Multi-Input AlexNet (4 images) | 0.58 | 0.48 | 0.55 | 0.58 |
 | Multi-Input AlexNet (7 images) | 0.62 | 0.50 | 0.42 | 0.62 |
 | Single-Input + Majority Voting | 0.91 | 0.91 | 0.92 | 0.91 |
@@ -104,7 +105,7 @@ Performance comparison on cross-dataset evaluation:
 
 - **Single-input models with patient-level aggregation significantly outperform multi-input architectures**
 - All aggregation methods achieve excellent performance
-- Patient-level aggregation improved sensitivity by 2% (AVG and Entropy) and 3% (Bayesian) compared to standard image-by-image baselines
+- Patient-level aggregation improved sensitivity by 12% (AVG and Entropy) and 13% (Bayesian) compared to standard image-by-image baselines
 - Models minimize false negatives while maintaining high precision
 - Cross-dataset generalization demonstrates real-world applicability
 - Presentation can be found under old_notebooks, Proof of presenting in symposium in old_notebooks
@@ -114,7 +115,7 @@ Performance comparison on cross-dataset evaluation:
 | Aspect | Multi-Input AlexNet | Single-Input + Aggregation |
 |--------|--------------------|-----------------------------|
 | **Advantages** | •Simultaneous cross-image learning •End-to-end optimization •Complex inter-slice relationships •Single model per patient | •Simpler, more stable architecture •Handles variable image counts •Easier interpretation and debugging •Superior cross-dataset robustness |
-| **Performance** | Moderate (58-62% accuracy) | Excellent (89-94% accuracy) |
+| **Performance** | (58-62% accuracy) | (89-94% accuracy) |
 | **Complexity** | High | Low-Medium |
 
 
