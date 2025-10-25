@@ -39,8 +39,8 @@ All models use a simplified AlexNet architecture optimized for medical imaging:
 **Architecture**: AlexNet CNN processing individual CT images (224×224×3)
 
 **Patient-Level Aggregation Methods**:
-- **Averaging**: Averages prediction probabilities across all patient images
-- **Majority Voting**: Takes majority vote across individual image predictions  
+- **Averaging**: Averages prediction probabilities across all patient images  (method explored for UROC SOAR poster)
+- **Majority Voting**: Takes majority vote across individual image predictions  (method explored for UROC SOAR poster)
 - **Entropy-based Weighting**: Weighs each scans prediction based on the model's confidence [weight is logarithmic] (method explored post UROC SOAR)
 - **Z-score Normalization**: Transforms mean and standard deviation of COVID-19 probabilities into Z-scores, then avergaing the Z-scores (method explored post UROC SOAR)
 - **Bayesian Weighting**: Weighting each scans prediction based on the model's confidence [weight is linear] (method explored post UROC SOAR)
